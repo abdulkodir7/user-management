@@ -26,7 +26,7 @@ public class DataLoader implements CommandLineRunner {
     public void run(String... args) throws Exception {
         if (initMode.equals("always")) {
             User abdulqodir = new User(
-                    "Abdulqodir",
+                    "Abdulkodir",
                     "a@gmail.com",
                     passwordEncoder.encode("1234"),
                     LocalDateTime.now(),
@@ -34,24 +34,24 @@ public class DataLoader implements CommandLineRunner {
                     false
             );
             User asadbek = new User(
-                    "Asadbek",
-                    "aa@gmail.com",
+                    "Sasha",
+                    "s@gmail.com",
                     passwordEncoder.encode("1234"),
                     LocalDateTime.now(),
                     LocalDateTime.now(),
                     false
             );
             User sardor = new User(
-                    "Sardor",
-                    "s@gmail.com",
+                    "John",
+                    "j@gmail.com",
                     passwordEncoder.encode("1234"),
                     LocalDateTime.now(),
                     LocalDateTime.now(),
-                    true
+                    false
             );
             User nurbek = new User(
-                    "Nurbek",
-                    "n@gmail.com",
+                    "Test",
+                    "t@gmail.com",
                     passwordEncoder.encode("1234"),
                     LocalDateTime.now(),
                     LocalDateTime.now(),
