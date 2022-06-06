@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import static com.itransition.itransitiontask4.util.Constants.*;
 
@@ -29,14 +28,14 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Optional<User> userOptional = userRepository.findByEmail(email);
-        if (userOptional.isEmpty()) {
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
             log.error("User not found");
             throw new UsernameNotFoundException("User not found");
         } else {
             log.info("User found {} user ", email);
         }
-        return userOptional.get();
+        return user;
     }
 
     public List<User> getAllUsers() {
@@ -77,9 +76,9 @@ public class UserService implements UserDetailsService {
         if (!request.getPassword().equals(request.getConfirmPassword()))
             return PASSWORD_NOT_MATCH;
 
-        Optional<User> optionalUser = userRepository.findByEmail(request.getEmail());
+        ;
 
-        if (optionalUser.isPresent())
+        if (userRepository.findByEmail(request.getEmail()) != null)
             return EMAIL_EXISTS;
 
         User newUser = new User(
