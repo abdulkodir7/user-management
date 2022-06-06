@@ -2,6 +2,9 @@ package com.itransition.itransitiontask4.user;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationListener;
+import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -9,6 +12,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,7 +27,7 @@ import static com.itransition.itransitiontask4.util.Constants.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UserService implements UserDetailsService {
+public class UserService implements UserDetailsService, ApplicationListener<AuthenticationSuccessEvent> {
 
     private final UserRepository userRepository;
 
@@ -42,12 +47,18 @@ public class UserService implements UserDetailsService {
         return userRepository.findAll();
     }
 
-    public void blockSelectedUsers(List<Long> usersId) {
+    public void blockSelectedUsers(List<Long> usersId, User currentUser, HttpServletRequest request) {
         for (Long userId : usersId) {
             User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                    .orElseThrow(() -> new UsernameNotFoundException(USERNAME_NOT_FOUND));
 
             if (!user.getIsBlocked()) {
+                if (user.getEmail().equals(currentUser.getEmail())) {
+                    HttpSession session = request.getSession(false);
+                    SecurityContextHolder.clearContext();
+                    if (session != null) session.invalidate();
+                }
+
                 user.setIsBlocked(true);
                 userRepository.save(user);
             }
@@ -56,8 +67,18 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional
-    public void deleteSelectedUsers(List<Long> usersId) {
-        userRepository.deleteAllByIdIn(usersId);
+    public void deleteSelectedUsers(List<Long> usersId, User currentUser, HttpServletRequest request) {
+        for (Long userId : usersId) {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new UsernameNotFoundException(USERNAME_NOT_FOUND));
+
+            if (user.getEmail().equals(currentUser.getEmail())) {
+                HttpSession session = request.getSession(false);
+                SecurityContextHolder.clearContext();
+                if (session != null) session.invalidate();
+            }
+            userRepository.delete(user);
+        }
     }
 
     public void unblockSelectedUsers(List<Long> usersId) {
@@ -97,5 +118,14 @@ public class UserService implements UserDetailsService {
 
     public PasswordEncoder getEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Override
+    public void onApplicationEvent(AuthenticationSuccessEvent event) {
+        String userName = ((UserDetails) event.getAuthentication().
+                getPrincipal()).getUsername();
+        User currentUser = userRepository.findByEmail(userName);
+        currentUser.setLastLoginTime(LocalDateTime.now());
+        userRepository.save(currentUser);
     }
 }
