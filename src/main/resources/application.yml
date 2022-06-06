@@ -3,10 +3,10 @@ server:
 
 spring:
   datasource:
-    password: root123
-    username: postgres
+    password: ddf09a602070cd79727bdb6d4aa140b527fbd7b8a768c84d4c0b78d9ad4d18f4
+    username: qybxvpdhjxyvzb
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/itransition_task4
+    url: jdbc:postgresql://ec2-54-147-33-38.compute-1.amazonaws.com:5432/d9j4309e2kqaq
   jpa:
     show-sql: true
     hibernate:
